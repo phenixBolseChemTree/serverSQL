@@ -1,17 +1,31 @@
 const express = require("express");
+const { Client } = require('pg');
 
-const PORT = process.env.PORT || 8080
+const app = express();
+const port = 8080;
 
+const client = new Client({
+  connectionString: 'postgres://vyksgghi:9AbXtm0q42EV_3QWG3EsZTYIuBQKGZm_@rosie.db.elephantsql.com/vyksgghi',
+});
 
-const app = express()
+client.connect();
 
 app.get('/', (req, res) => {
-  res.send('NODEMON WORK')
-})
+  client.query('SELECT * FROM Users', (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Ошибка сервера');
+    } else {
+      res.json(result.rows);
+    }
+  });
+});
 
-app.listen(
-  PORT,
-  () => console.log(`server started on port ${PORT}`))
+app.on('close', () => {
+  client.end();
+  console.log('Соединение с базой данных закрыто');
+});
 
-
-  
+app.listen(port, () => {
+  console.log(`Сервер запущен на http://localhost:${port}`);
+});
